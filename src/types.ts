@@ -4,3 +4,8 @@ export type RewardsData = {
   validatorRewards: number
   timestamp: number
 }
+
+export type PriceEntry = {
+  created_date: string
+  price: number
+}

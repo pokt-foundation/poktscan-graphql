@@ -7,7 +7,7 @@ const OLDEST_PRICE_DATE = '2021-07-01'
 
 const poktRewardsSchema = buildSchema(`
   type Query {
-    poktRewards(dateFrom: String!, dateTo: String!): PoktRewards!
+    poktRewards(dateFrom: String!, dateTo: String!): [PoktRewards!]
   }
 
   type PoktRewards {

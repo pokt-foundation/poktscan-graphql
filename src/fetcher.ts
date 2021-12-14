@@ -9,7 +9,7 @@ import {
   DAO_REWARD_SHARE,
 } from './constants'
 
-import { RewardsData } from './types'
+import { PriceEntry, RewardsData } from './types'
 
 export const getRewardsData = async (dateFrom: string, dateTo: string) => {
   let rewardsData: RewardsData[] = []
@@ -21,6 +21,8 @@ export const getRewardsData = async (dateFrom: string, dateTo: string) => {
       debug: true,
     })
 
+    const poktPrices: PriceEntry[] = await getPrices(dateFrom, dateTo)
+
     const [{ blocks }] = response.data
 
     for (const i in blocks) {
@@ -29,9 +31,11 @@ export const getRewardsData = async (dateFrom: string, dateTo: string) => {
       const unixTimestap = Math.floor(parsedDate.getTime() / 1000)
       const baseBlockReward = blocks[i].total_relays_completed * POKT_PER_RELAY
 
-      // Pocket Pricing
+      // Pricing Data
       const dateISO = formatDate(parsedDate)
-      const poktPrice = await getPrice(dateISO)
+
+      // Map each price with its corresponding day data
+      const { price: poktPrice } = poktPrices.find((x) => x.created_date === dateISO)
 
       rewardsData.push({
         nodeRewards: baseBlockReward * NODE_REWARD_SHARE * poktPrice,
@@ -47,19 +51,19 @@ export const getRewardsData = async (dateFrom: string, dateTo: string) => {
   }
 }
 
-const getPrice = async (date: string): Promise<number> => {
+const getPrices = async (dateFrom: string, dateTo: string): Promise<PriceEntry[]> => {
   try {
     const { data: response } = await axios.get(PRICE_ENDPOINT, {
-      params: { date_from: date, date_to: date },
+      params: { date_from: dateFrom, date_to: dateTo },
     })
 
-    const [{ price }] = response.data
+    const prices = response.data
 
-    if (!price) {
-      return 0
+    if (!prices) {
+      return []
     }
 
-    return price
+    return prices
   } catch (e) {
     console.error(e)
   }
